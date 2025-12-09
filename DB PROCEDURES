@@ -1,0 +1,218 @@
+drop procedure if exists LeastPiece;
+
+delimiter $$
+
+create procedure LeastPiece()
+begin
+
+    if exists(select 1 from sets) and exists(select 1 from collection) then
+              select
+            s.set_id,
+            s.piece_count
+        from
+            sets as s
+        join
+            collection as c on s.set_id = c.set_id
+        order by
+            s.piece_count asc
+        limit 1;
+    else
+       
+        signal sqlstate '45001'
+        set message_text = 'error: either the sets table or the collection table (or both) are empty. cannot find a set with the highest piece count in collection.';
+    end if;
+end$$
+
+delimiter ;
+
+
+
+drop procedure if exists MostPiece;
+
+delimiter $$
+
+create procedure MostPiece()
+begin
+
+    if exists(select 1 from sets) and exists(select 1 from collection) then
+              select
+            s.set_id,
+            s.piece_count
+        from
+            sets as s
+        join
+            collection as c on s.set_id = c.set_id
+        order by
+            s.piece_count desc
+        limit 1;
+    else
+       
+        signal sqlstate '45001'
+        set message_text = 'error: either the sets table or the collection table (or both) are empty. cannot find a set with the highest piece count in collection.';
+    end if;
+end$$
+
+delimiter ;
+
+
+
+
+
+
+Drop procedure if exists SameFigs;
+
+Delimiter $$
+
+Create procedure SameFigs(mini_ID varchar(9))
+
+Begin
+
+	if(exists(select * from figures where mini_num = mini_ID)) then
+
+
+SELECT DISTINCT 
+s.set_id, 
+s.set_name 
+FROM 
+sets AS s 
+JOIN 
+figGroup AS fg ON s.group_num = fg.group_num 
+JOIN 
+figures AS f ON fg.mini_num = f.mini_num 
+WHERE 
+f.mini_num = mini_ID; 
+
+	Else
+		signal sqlstate '45001'
+set message_text = 'No figure';
+
+End if;
+end$$
+
+Delimiter ;
+
+
+
+
+
+
+Drop procedure if exists mostFigs;
+
+Delimiter $$
+
+Create procedure mostFigs()
+Begin
+
+	if(exists(select * from sets) AND exists(select * from collection) AND exists(select * from figgroup)) then
+
+		SELECT 
+s.set_id, 
+s.set_name, 
+SUM(fg.fig_qty) AS total_figures_in_set 
+FROM 
+sets AS s 
+JOIN 
+figGroup AS fg ON s.group_num = fg.group_num 
+GROUP BY 
+s.set_id, s.set_name 
+ORDER BY 
+total_figures_in_set DESC 
+LIMIT 1;
+
+
+	Else
+		signal sqlstate '45001'
+set message_text = 'No figures';
+
+End if;
+end$$
+
+Delimiter ;
+
+
+
+
+
+
+Drop procedure if exists oldSet;
+
+Delimiter $$
+
+Create procedure oldSet()
+Begin
+
+	if(exists(select * from sets) AND exists(select * from collection)) then
+
+		Select * from collection where set_id = (select set_id from sets order by date_released asc limit 1);
+
+
+	Else
+		signal sqlstate '45001' 
+set message_text = 'No sets';
+
+End if;
+end$$
+
+Delimiter ;
+
+
+
+
+
+
+
+Create table:
+
+create table sets 
+( set_id varchar(12) not null primary key,
+set_name varchar(25) not null,
+date_released date not null,
+piece_count int not null,
+age_rating varchar(3) not null,
+GWP Boolean not null,
+genre_ID int not null,
+group_num int not null,
+foreign key (group_num) references figGroup(group_num),
+foreign key (genre_ID) references genre(genre_ID)
+
+);
+
+
+create table collection
+( set_id varchar(12) not null,
+year_acquired date not null,
+set_qty int not null,
+have_box Boolean not null,
+is_complete Boolean not null,
+primary key (set_id, year_acquired),
+foreign key (set_id) references sets (set_id)
+
+);
+
+
+
+
+create table figures
+( mini_num varchar(9) not null primary key,
+mini_name varchar(20) not null,
+category varchar(20) not null,
+release_date date not null );
+
+
+
+create table figGroup
+( group_num int not null primary key,
+mini_num varchar(9) not null,
+foreign key (mini_num) references figures(mini_num),
+fig_qty int unsigned not null );
+
+
+
+create table genre
+( genre_ID int not null primary key,
+genre_name varchar(20) not null,
+date_introduced date not null );
+
+
+
+
