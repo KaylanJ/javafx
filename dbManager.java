@@ -19,9 +19,9 @@ import java.time.format.DateTimeParseException;
 
 public class dbManager extends Application{
 	
-	static final String DB_URL = "jdbc:mariadb://localhost:3306/lego"; // Your URL
-    static final String USER = "root"; // Your MariaDB username
-    static final String PASS = "102806"; // Your MariaDB password
+	static final String DB_URL = "jdbc:mariadb://localhost:3306/lego"; //  URL
+    static final String USER = "########"; //  MariaDB username
+    static final String PASS = "#####"; //  MariaDB password
 	
 	private Connection conn;
 
@@ -696,4 +696,5 @@ String setID = set_id_field.getText();
     
 					
 					
+
 }			
